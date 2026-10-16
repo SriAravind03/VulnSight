@@ -1,0 +1,30 @@
+# Sentinel Vulnerability Scanner - Dependencies
+#
+# Versions are pinned EXACTLY (not >=) on purpose. This app has been
+# built and tested against these specific versions. Newer major
+# versions of ttkbootstrap in particular have changed styling/theming
+# behavior in ways that can break this UI's appearance. If you need to
+# upgrade a package, please re-test the GUI visually afterward.
+
+# GUI
+ttkbootstrap==1.10.1
+
+# Networking / scanning
+python-nmap==0.7.1
+
+# Web
+requests==2.32.3
+beautifulsoup4==4.12.3
+
+# Reporting
+reportlab==4.2.5
+Jinja2==3.1.4
+
+# Charts
+matplotlib==3.9.2
+
+# Config
+PyYAML==6.0.2
+
+# Misc
+python-dateutil==2.9.0.post0

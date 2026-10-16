@@ -1,0 +1,47 @@
+# Sentinel Vulnerability Scanner - Default Configuration
+# This file is copied to a user config on first run and can be edited
+# from the Settings page in the application.
+
+app:
+  name: "Sentinel Vulnerability Scanner"
+  version: "1.0.0"
+  theme: "darkly"          # ttkbootstrap theme name, e.g. darkly / flatly / cyborg
+  log_level: "INFO"        # DEBUG, INFO, WARNING, ERROR
+
+scan:
+  default_ports: "1-1024"
+  max_threads: 40
+  socket_timeout: 2.0       # seconds, used by the fallback pure-python scanner
+  nmap_timeout: 300         # seconds, hard timeout for an nmap invocation
+  enable_udp: false
+  enable_os_detection: false
+  rate_limit_delay: 0.0     # seconds between connection attempts (politeness)
+
+web_scan:
+  timeout: 8
+  user_agent: "Sentinel-Scanner/1.0 (+authorized-security-assessment)"
+  verify_tls: true
+  follow_redirects: true
+  max_redirects: 5
+
+cve:
+  nvd_api_base: "https://services.nvd.nist.gov/rest/json/cves/2.0"
+  circl_api_base: "https://cve.circl.lu/api"
+  nvd_api_key: ""            # optional, raises NVD rate limits if set
+  cache_ttl_days: 7
+  request_delay_seconds: 6   # NVD public rate limit without an API key (~6s/req)
+
+report:
+  output_dir: "exports"
+  company_name: "Your Organization"
+  author: "Security Team"
+  logo_path: ""
+
+database:
+  path: "database/sentinel.db"
+
+openvas:
+  auto_detect: true
+  socket_path: "/run/gvm/gvmd.sock"
+  gmp_username: ""
+  gmp_password: ""

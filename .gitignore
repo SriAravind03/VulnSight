@@ -1,0 +1,25 @@
+# Environments
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Runtime data (auto-generated)
+config/user_config.yaml
+database/*.db
+logs/*.log
+exports/*.pdf
+exports/*.html
+exports/*.csv
+exports/*.json
+!exports/.gitkeep
+!logs/.gitkeep
+!database/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/

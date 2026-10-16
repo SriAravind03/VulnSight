@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sentinel Vulnerability Scan Report - {{ scan.target }}</title>
+<style>
+  :root { --navy: #1b2838; --accent: #3aa0ff; }
+  body { font-family: "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 0; color: #1c1c1c; background: #f4f6f8; }
+  header { background: var(--navy); color: #fff; padding: 28px 40px; }
+  header h1 { margin: 0 0 4px 0; font-size: 26px; }
+  header p { margin: 2px 0; opacity: 0.85; font-size: 14px; }
+  main { max-width: 1000px; margin: 24px auto; padding: 0 20px 60px; }
+  section { background: #fff; border-radius: 8px; padding: 20px 26px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  h2 { color: var(--navy); border-bottom: 2px solid #eef1f4; padding-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eef1f4; vertical-align: top; }
+  th { background: #f0f3f6; color: var(--navy); }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; color: #fff; font-size: 12px; font-weight: 600; }
+  .summary-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; }
+  .summary-card { flex: 1; min-width: 140px; background: #f0f3f6; border-radius: 6px; padding: 14px; text-align: center; }
+  .summary-card .count { font-size: 26px; font-weight: 700; }
+  .cve-block { border: 1px solid #eef1f4; border-radius: 6px; padding: 12px 16px; margin-bottom: 10px; }
+  .muted { color: #6b7785; font-size: 13px; }
+  footer { text-align: center; color: #8a95a1; font-size: 12px; padding: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Sentinel Vulnerability Scanner</h1>
+  <p>Security Assessment Report</p>
+  <p>Target: <strong>{{ scan.target }}</strong> &nbsp;|&nbsp; Generated: {{ generated_at }}</p>
+</header>
+<main>
+
+  <section>
+    <h2>Executive Summary</h2>
+    <p>This report presents the results of an authorized security assessment of <strong>{{ scan.target }}</strong>,
+       started {{ scan.started_at }} and completed {{ scan.finished_at or "N/A" }}.
+       Prepared by {{ author }} &mdash; {{ company_name }}.</p>
+    <div class="summary-grid">
+      {% for sev, count in severity_counts.items() %}
+      <div class="summary-card">
+        <div class="count" style="color: {{ severity_colors[sev] }}">{{ count }}</div>
+        <div>{{ sev }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <h2>Host Summary</h2>
+    <table>
+      <tr><th>IP Address</th><th>Hostname</th><th>Status</th><th>OS Guess</th><th>Vendor</th></tr>
+      {% for host in hosts %}
+      <tr>
+        <td>{{ host.ip_address }}</td>
+        <td>{{ host.hostname or "-" }}</td>
+        <td>{{ host.status }}</td>
+        <td>{{ host.os_guess or "-" }}</td>
+        <td>{{ host.vendor or "-" }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="muted">No hosts recorded.</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  <section>
+    <h2>Open Ports &amp; Services</h2>
+    <table>
+      <tr><th>Host</th><th>Port</th><th>Protocol</th><th>State</th><th>Service</th><th>Version</th></tr>
+      {% for host in hosts %}
+        {% for port in ports_by_host.get(host.id, []) %}
+        <tr>
+          <td>{{ host.ip_address }}</td>
+          <td>{{ port.port_number }}</td>
+          <td>{{ port.protocol }}</td>
+          <td>{{ port.state }}</td>
+          <td>{{ port.service_name or "-" }}</td>
+          <td>{{ (port.product ~ " " ~ port.version).strip() or "-" }}</td>
+        </tr>
+        {% endfor %}
+      {% else %}
+      <tr><td colspan="6" class="muted">No port data recorded.</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  <section>
+    <h2>CVE Findings &amp; Risk Ratings</h2>
+    {% for cve in cves %}
+    <div class="cve-block">
+      <p><strong>{{ cve.cve_id }}</strong> &mdash; Host {{ cve.host_ip }}{% if cve.port_number %}:{{ cve.port_number }}{% endif %}
+         &nbsp; <span class="badge" style="background: {{ cve.risk_color }}">{{ cve.risk_severity }}</span>
+         &nbsp; CVSS: {{ cve.cvss_score if cve.cvss_score is not none else "N/A" }}</p>
+      <p class="muted">{{ cve.description or "No description available." }}</p>
+      <p class="muted"><em>Recommendation:</em> {{ cve.risk_recommendation }}</p>
+      <p class="muted">Exploit known: {{ "Yes" if cve.exploit_known else "No" }} &nbsp;|&nbsp;
+         Patch available: {{ "Yes" if cve.patch_available else "No" }} &nbsp;|&nbsp;
+         Source: {{ cve.source }}</p>
+    </div>
+    {% else %}
+    <p class="muted">No CVE matches were identified for the detected services.</p>
+    {% endfor %}
+  </section>
+
+  <section>
+    <h2>Web Application Findings</h2>
+    <table>
+      <tr><th>URL</th><th>Category</th><th>Severity</th><th>Finding</th><th>Recommendation</th></tr>
+      {% for f in web_findings %}
+      <tr>
+        <td>{{ f.url }}</td>
+        <td>{{ f.category }}</td>
+        <td><span class="badge" style="background: {{ f.risk_color }}">{{ f.severity }}</span></td>
+        <td>{{ f.finding }}</td>
+        <td>{{ f.recommendation }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="muted">No web application checks were performed or no issues were found.</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+
+</main>
+<footer>
+  Sentinel Vulnerability Scanner v{{ tool_version }} &middot; Generated {{ generated_at }} &middot;
+  Non-destructive, defensive assessment techniques only, used against an authorized target.
+</footer>
+</body>
+</html>
