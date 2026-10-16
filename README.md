@@ -1,189 +1,264 @@
-# 🛡 Sentinel Vulnerability Scanner
+# VulnSight — Vulnerability Assessment Suite
 
-A professional desktop vulnerability scanner for **authorized** security
-assessments of systems, servers, internal networks, and web applications
-you own or have explicit written permission to test.
+**Discover. Assess. Secure.**
 
-Sentinel discovers hosts, fingerprints services and versions, correlates
-findings against public CVE databases (NVD/CIRCL), performs safe/passive
-web application checks, calculates a weighted risk score, and generates
-polished PDF/HTML/CSV/JSON reports — all from a modern Tkinter +
-ttkbootstrap desktop GUI that never freezes while a scan runs.
+VulnSight is a Python-based desktop vulnerability assessment tool designed to help security learners, administrators, and authorized security testers identify potential security weaknesses in network hosts and web applications. It combines network discovery, service enumeration, CVE correlation, passive web security checks, risk scoring, and security report generation in a graphical interface.
 
-> ⚠️ **Authorized use only.** Scanning systems without permission may be
-> illegal in your jurisdiction. See [Legal Notice](#legal-notice) below.
-
-> 📌 **v1.0.1 update:** fixed a dependency-pinning issue that could cause
-> a newer/incompatible `ttkbootstrap` version to be installed via
-> `pip install -r requirements.txt`, producing a broken/blank-looking UI.
-> All dependencies are now pinned to exact tested versions, the KPI
-> cards / sidebar / severity badges were rebuilt with guaranteed
-> cross-platform rendering, empty-state screens were added to every page
-> so a fresh install doesn't look "broken" before you've run a scan, and
-> a real bug was fixed where host discovery could silently skip scanning
-> a reachable single IP/hostname target if it didn't answer on one of a
-> small fixed list of common ports. **If you installed before this
-> update, delete your `.venv` folder and re-run setup** to pick up the
-> corrected dependency versions.
-
----
+> **Disclaimer:** VulnSight is intended for educational and authorized security testing only. Scan only systems, networks, and applications you own or have explicit permission to assess.
 
 ## Features
 
-| Area | Details |
+### 1. Network Discovery
+- Scan individual IP addresses, hostnames, URLs, and CIDR network ranges.
+- Discover reachable hosts on a target network.
+- Identify accessible network services and ports.
+
+### 2. Port Scanning and Service Enumeration
+- Discover open TCP ports using Nmap when available.
+- Support optional UDP scanning.
+- Identify services and collect available service information.
+- Provide a built-in Python-based fallback scanner when supported Nmap functionality is unavailable.
+
+### 3. CVE Correlation
+- Correlate discovered service information with known Common Vulnerabilities and Exposures (CVEs).
+- Retrieve vulnerability information through the National Vulnerability Database (NVD) REST API.
+- Use CIRCL as a fallback vulnerability information source.
+- Cache vulnerability data locally using SQLite to reduce repeated requests.
+
+*Note: CVE matches indicate potential vulnerabilities and should be validated against the actual software version, configuration, and environment.*
+
+### 4. Web Application Security Checks
+Perform safe, passive checks for common security configuration issues, including:
+
+- Missing or weak HTTP security headers.
+- Cookie security flags.
+- TLS/HTTPS configuration indicators.
+- HTTP-to-HTTPS redirect behavior.
+- Directory listing exposure.
+- Form security indicators.
+- Server banner information.
+- Availability of `robots.txt` and `security.txt`.
+
+These checks provide indicators for further investigation; they do not constitute a complete web application penetration test.
+
+### 5. Risk Assessment
+- Calculate a risk score from collected scan findings.
+- Organize results to help prioritize investigation.
+- Present findings through the graphical interface.
+
+### 6. Security Reporting
+Generate reports in multiple formats:
+
+- PDF
+- HTML
+- CSV
+- JSON
+
+Reports can be used for documentation, security reviews, and tracking assessment results.
+
+### 7. Graphical User Interface
+The desktop interface is designed with `ttkbootstrap` and includes sections for:
+
+- Dashboard
+- Scan configuration
+- Scan results
+- Reports
+- Settings
+- About
+
+Background threads help keep the interface responsive during scanning operations.
+
+### 8. Optional Integrations
+- Nmap for enhanced network scanning.
+- OpenVAS/Greenbone availability detection for environments where those tools are installed.
+
+## Technology Stack
+
+| Technology | Purpose |
 |---|---|
-| **Host Discovery** | IP / CIDR / hostname / URL targets; nmap-based or built-in pure-Python fallback |
-| **Port Scanning** | TCP (and optional UDP via nmap) with state, service, product, and version |
-| **Service Enumeration** | HTTP(S), SSH, FTP, SMTP, DNS, RDP, SMB, MySQL, PostgreSQL, MongoDB, Redis, LDAP, NTP, SNMP, and more |
-| **CVE Correlation** | NVD REST API primary, CIRCL API fallback, local SQLite cache, CVSS-based severity |
-| **Safe Web Scanning** | Security headers, cookie flags, TLS config, HTTP→HTTPS redirect, directory listing exposure, form security, server banners, robots.txt/security.txt — **non-destructive, passive checks only** |
-| **Risk Engine** | Combines CVSS, exploit availability, patch availability, exposure, and service sensitivity into a 0–10 score and Critical/High/Medium/Low/Informational rating |
-| **Reporting** | PDF (reportlab), HTML (Jinja2), CSV, and JSON — all built from one consistent data model, plus a severity chart |
-| **GUI** | Dashboard, Scan, Results, Reports, Settings, About; sidebar nav; dark/light themes; live progress and log |
-| **Storage & Search** | SQLite database of scans/hosts/ports/CVEs/reports; searchable results view |
-| **Concurrency** | `ThreadPoolExecutor` + background threads — the UI never blocks during a scan |
-| **OpenVAS/Greenbone** | Auto-detected if installed locally; the app runs fully without it using its built-in engines |
+| Python | Core application |
+| Tkinter / ttkbootstrap | Desktop graphical interface |
+| Nmap / python-nmap | Network discovery and port scanning |
+| Requests | HTTP requests and vulnerability API access |
+| Beautiful Soup | HTML parsing |
+| SQLite | Local vulnerability cache |
+| ReportLab | PDF report generation |
+| Jinja2 | HTML report templates |
+| Matplotlib | Data visualization |
+| PyYAML | Configuration management |
+| Python Dateutil | Date and time utilities |
 
----
+## Prerequisites
 
-## Quickstart
+- Python 3.12 or later is recommended.
+- Python 3.10 or later may work, depending on the components used.
+- Nmap is optional but recommended for enhanced network scanning.
+- Internet access is needed for online vulnerability database queries.
+- A Windows or Linux environment capable of running Python desktop applications.
 
-### 1. Requirements
-- Python 3.12+ (3.10+ generally works)
-- (Optional but recommended) the `nmap` binary for full scanning features —
-  the app automatically falls back to a built-in pure-Python scanner if
-  it isn't found.
+## Installation
 
-### 2. Setup
+### Windows
 
-> **Note:** dependencies in `requirements.txt` are pinned to exact tested
-> versions (not `>=` ranges). This matters most for `ttkbootstrap` —
-> newer major versions changed internal styling behavior in ways that
-> can visually break this UI (cards/sidebar rendering incorrectly). If
-> you already have an environment with a different ttkbootstrap version
-> installed, re-run `pip install -r requirements.txt` in a **fresh
-> virtual environment** to get the exact tested versions.
+1. Download or clone the project repository.
+2. Open PowerShell or Command Prompt in the project directory.
+3. Run the setup script:
 
-**Linux / macOS**
-```bash
-./setup.sh
-source .venv/bin/activate
-python main.py
+```powershell
+.\setup.bat
 ```
 
-**Windows**
+If the setup script does not run, create a virtual environment manually:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+If PowerShell blocks virtual environment activation, use Command Prompt and run:
+
 ```bat
-setup.bat
 .venv\Scripts\activate.bat
-python main.py
 ```
 
-**Manual setup (any OS)**
+### Linux
+
+Run the setup script from the project directory:
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+Alternatively, install the dependencies manually:
+
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate      # or .venv\Scripts\activate.bat on Windows
-pip install -r requirements.txt
-python check_dependencies.py    # verify everything is installed correctly
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+Install Nmap separately using your Linux distribution's package manager if you want to use its scanning capabilities.
+
+## Dependency Check
+
+After installing the dependencies, run:
+
+```bash
+python check_dependencies.py
+```
+
+This script checks the Python version, required dependencies, and optional Nmap availability.
+
+## Running VulnSight
+
+From the project directory, activate the virtual environment and run:
+
+```bash
 python main.py
 ```
 
-### 3. Run your first scan
-1. Open the **Scan** page.
-2. Enter a target: a single IP (`192.168.1.10`), a CIDR range
-   (`192.168.1.0/24`), a hostname, or an authorized URL
-   (`https://your-authorized-app.example`).
-3. Choose scan options (host discovery, TCP/UDP, service detection,
-   web scan, CVE lookup).
-4. **Tick the authorization checkbox** — the scan will not start without it.
-5. Click **Start Scan** and watch live progress in the log.
-6. Review results on the **Results** page, then generate a report from
-   the **Reports** page.
+The application entry point loads the VulnSight desktop interface.
 
----
+**Important:** The complete project structure must be present for the application to start successfully. This includes the GUI, scanner, CVE, reporting, database, and utility modules referenced by the application.
+
+## Typical Workflow
+
+1. Launch VulnSight.
+2. Confirm that you are authorized to scan the intended target.
+3. Enter a permitted IP address, hostname, URL, or network range.
+4. Configure the available scan options.
+5. Start the assessment.
+6. Review discovered hosts, services, potential vulnerabilities, and web security findings.
+7. Examine the risk score and prioritize findings for validation.
+8. Generate a report in the required format.
+9. Remediate verified issues and conduct a follow-up assessment.
 
 ## Project Structure
 
-```
-scanner/
-├── main.py                  # Application entry point
-├── check_dependencies.py    # Standalone dependency checker
-├── setup.sh / setup.bat     # Automatic environment setup
+The intended project structure is organized into the following components:
+
+```text
+VulnSight/
+├── main.py
 ├── requirements.txt
-│
-├── gui/                     # Tkinter/ttkbootstrap desktop UI
-│   ├── main_window.py       # Main window: sidebar + content + status bar
-│   ├── sidebar.py
-│   ├── widgets.py           # Reusable widgets (status bar, stat cards, badges)
-│   └── pages/                # Dashboard, Scan, Results, Reports, Settings, About
-│
-├── scanner/                 # Scan engines and logic
-│   ├── engine.py             # nmap wrapper + OpenVAS detection
-│   ├── fallback_scanner.py   # Pure-Python threaded TCP scanner (no nmap needed)
-│   ├── web_scanner.py        # Safe/passive web application checks
-│   ├── risk_engine.py        # Risk scoring
-│   └── orchestrator.py       # End-to-end scan pipeline coordinator
-│
+├── check_dependencies.py
+├── setup.bat
+├── setup.sh
+├── README.md
+├── gui/
+│   └── main_window.py
+├── scanner/
 ├── cve/
-│   └── lookup.py             # NVD/CIRCL CVE lookup + local caching
-│
-├── reports/                  # Report generation
-│   ├── data_builder.py       # Aggregates DB data into one ReportData object
-│   ├── pdf_report.py / html_report.py / csv_json_report.py
-│   ├── charts.py             # matplotlib severity charts
-│   └── manager.py            # Unified generate_report() entry point
-│
+├── reports/
 ├── database/
-│   ├── schema.py              # SQLite schema + connection management
-│   └── models.py              # Dataclasses + repository (CRUD) classes
-│
 ├── utils/
-│   ├── config.py              # YAML configuration manager
-│   ├── logger.py              # Centralized rotating-file logging
-│   └── validators.py          # Strict input validation (anti-injection)
-│
-├── config/default_config.yaml # Default settings (copied to user_config.yaml on first run)
-├── templates/report_template.html
-├── assets/, logs/, exports/, database/   # Runtime directories
-└── docs/                      # Additional documentation (see below)
+├── config/
+│   └── default_config.yaml
+├── templates/
+│   └── report_template.html
+├── assets/
+├── logs/
+├── exports/
+└── docs/
 ```
+
+Some directories may be created during setup or generated as part of the application's operation. Ensure that the required source modules and configuration files are included in your repository.
+
+## Security and Responsible Use
+
+VulnSight is intended to support defensive security assessments.
+
+- Obtain explicit authorization before scanning a target.
+- Do not scan public IP addresses, third-party infrastructure, or networks without permission.
+- Start with a small, controlled test environment.
+- Review scan configurations before launching a scan.
+- Protect generated reports because they may contain sensitive infrastructure information.
+- Validate findings before treating them as confirmed vulnerabilities.
+- Respect applicable laws, organizational policies, and service terms.
+
+VulnSight is an assessment aid and should not be treated as a replacement for professional security testing or manual validation.
+
+## Limitations
+
+- Vulnerability correlation depends on the accuracy of detected service information and available CVE data.
+- Online vulnerability lookups depend on external services and network connectivity.
+- Nmap-based features require Nmap to be installed and available in the system path.
+- Passive web checks identify selected security indicators and may not discover every application vulnerability.
+- Risk scores are prioritization aids, not guarantees of exploitability or business impact.
+- Optional integrations may require separate installation and configuration.
+
+## Future Enhancements
+
+Potential areas for future development include:
+
+- Improved vulnerability validation and deduplication.
+- Enhanced scan history and comparison between assessments.
+- Additional report customization.
+- Improved visualization of findings and risk trends.
+- More vulnerability data sources and integrations.
+- Additional security checks for authorized testing environments.
+
+## Contributing
+
+Contributions, bug reports, documentation improvements, and feature suggestions are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Make your changes and test them.
+4. Submit a pull request describing the changes.
+
+Please do not include real credentials, API keys, private target information, or sensitive scan reports in commits.
+
+## License
+
+Choose and add an appropriate open-source license before distributing this project. Until a license is included, do not assume that others have permission to reuse, modify, or redistribute the code.
 
 ---
 
-## Configuration
+**VulnSight — Discover. Assess. Secure.**
 
-Settings live in `config/user_config.yaml` (auto-created from
-`config/default_config.yaml` on first run) and can also be edited from
-the **Settings** page: theme, thread count, socket timeout, report
-output directory, company/author name for reports, and an optional NVD
-API key (raises the public rate limit from ~1 request/6s to a much
-higher ceiling).
-
-## Security Notes
-
-- All user-supplied targets and port specs are validated in
-  `utils/validators.py` before being used anywhere — shell
-  metacharacters are rejected outright, and `python-nmap` invokes the
-  `nmap` binary via an argument list (never a shell string).
-- The web scanner performs **read-only, non-destructive checks only**.
-  It does not attempt authentication bypass, payload injection, or
-  denial-of-service testing.
-- No API keys or secrets are hardcoded; the optional NVD API key is
-  stored in your local `config/user_config.yaml`, which is not
-  committed to version control (see `.gitignore`).
-
-## Legal Notice
-
-This software is provided for **defensive, authorized security
-assessment only**. You must own the target system(s) or hold explicit
-written authorization to test them. Unauthorized scanning of computer
-systems may violate laws such as the U.S. Computer Fraud and Abuse Act,
-the UK Computer Misuse Act, or equivalent legislation elsewhere. The
-authors accept no liability for misuse of this software. The
-in-application authorization checkbox on the Scan page is a required,
-non-bypassable gate before any scan can run.
-
-## Further Documentation
-
-See the `docs/` folder for the [Installation Guide](docs/INSTALLATION.md),
-[Architecture Overview](docs/ARCHITECTURE.md), [User Guide](docs/USER_GUIDE.md),
-and [Developer Guide](docs/DEVELOPER_GUIDE.md).
+*A desktop vulnerability assessment project built with Python for authorized security testing and learning.*
